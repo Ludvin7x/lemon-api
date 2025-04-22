@@ -85,6 +85,13 @@ class AssignDeliveryCrewViewSet(viewsets.ModelViewSet):
     serializer_class = AssignDeliveryCrewSerializer
     permission_classes = [IsAuthenticated, IsManagerOrAdmin]
     http_method_names = ['get', 'put', 'patch', 'head', 'options']
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        validated_data = request.data
+        instance.delivery_crew = validated_data.get('delivery_crew', instance.delivery_crew)
+        instance.save()
+        return Response(self.get_serializer(instance).data)
     
 class OrderViewSet(viewsets.ModelViewSet):
     """
@@ -182,3 +189,5 @@ class CreateOrderView(generics.CreateAPIView):
         
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    

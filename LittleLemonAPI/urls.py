@@ -15,6 +15,7 @@ router.register(r'menu-items', MenuItemViewSet, basename='menuitem')
 router.register(r'assign-delivery-crew', AssignDeliveryCrewViewSet, basename='assign-delivery-crew') 
 router.register(r'orders', OrderViewSet, basename='order')
 router.register(r'cart', CartViewSet, basename='cart')  
+router.register(r'orders/assign', AssignDeliveryCrewViewSet, basename='assign-delivery')
 
 urlpatterns = [
     path('', include(router.urls)),
