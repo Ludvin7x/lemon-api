@@ -3,9 +3,12 @@ from rest_framework import viewsets, permissions, generics, status
 from rest_framework.permissions import IsAuthenticated
 from .models import MenuItem, Category, Order, Cart
 from .serializers import CreateOrderSerializer, MenuItemSerializer, CartSerializer, CategorySerializer, AssignDeliveryCrewSerializer, OrderSerializer
+from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.decorators import action
+from rest_framework.views import APIView
 
 class IsManagerOrAdmin(permissions.BasePermission):
     """
@@ -34,9 +37,6 @@ class MenuItemViewSet(viewsets.ModelViewSet):
     serializer_class = MenuItemSerializer
    
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
         if self.request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             self.permission_classes = [IsAuthenticated, IsManagerOrAdmin]
         else:
@@ -51,9 +51,6 @@ class CategoryListView(generics.ListCreateAPIView):
     serializer_class = CategorySerializer
 
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
         if self.request.method == 'POST':
             self.permission_classes = [IsAuthenticated, IsManagerOrAdmin]
         else:
@@ -68,31 +65,12 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CategorySerializer
 
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
             self.permission_classes = [IsAuthenticated, IsManagerOrAdmin]
         else:
             self.permission_classes = [permissions.AllowAny]
         return super().get_permissions()
-    
-class AssignDeliveryCrewViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows managers to assign delivery crew to orders.
-    """
-    queryset = Order.objects.all()
-    serializer_class = AssignDeliveryCrewSerializer
-    permission_classes = [IsAuthenticated, IsManagerOrAdmin]
-    http_method_names = ['get', 'put', 'patch', 'head', 'options']
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        validated_data = request.data
-        instance.delivery_crew = validated_data.get('delivery_crew', instance.delivery_crew)
-        instance.save()
-        return Response(self.get_serializer(instance).data)
-    
+     
 class OrderViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows orders to be viewed or edited.
@@ -116,22 +94,14 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Order.objects.filter(user=user)
 
     def get_permissions(self):
-        """
-        Customize permissions based on the action:
-        - DELETE: Only managers/admins
-        - PATCH/PUT: Managers/admins or delivery crew (limited fields)
-        - GET: Any authenticated user (but queryset will be filtered)
-        """
         if self.request.method == 'DELETE':
             self.permission_classes = [IsAuthenticated, IsManagerOrAdmin]
         elif self.request.method in ['PATCH', 'PUT']:
             if self.request.user.groups.filter(name='Delivery crew').exists():
-                # Delivery crew can only update status
                 data = self.request.data
                 if set(data.keys()) - {'status'}:
                     raise PermissionDenied("Delivery crew can only update order status")
             else:
-                # Managers can update anything
                 self.permission_classes = [IsAuthenticated, IsManagerOrAdmin]
         return super().get_permissions()
     
@@ -147,11 +117,8 @@ class CartViewSet(viewsets.ModelViewSet):
         return Cart.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        # Get menuitem from the validated data
         menuitem = serializer.validated_data['menuitem']
-        # Get the price directly from the MenuItem in the database
         unit_price = menuitem.price
-        # Save the cart item with the correct price from the database
         serializer.save(
             user=self.request.user,
             unit_price=unit_price,
@@ -159,12 +126,11 @@ class CartViewSet(viewsets.ModelViewSet):
         )
         
     def perform_update(self, serializer):
-        # For updates, make sure the price is recalculated
         menuitem = serializer.validated_data.get('menuitem', serializer.instance.menuitem)
         quantity = serializer.validated_data.get('quantity', serializer.instance.quantity)
-        # Always use the price from the database, not from the request
         unit_price = menuitem.price
         serializer.save(unit_price=unit_price, price=unit_price * quantity)
+
 class CreateOrderView(generics.CreateAPIView):
     """
     Allows customers to create an order based on their cart items.
@@ -176,18 +142,54 @@ class CreateOrderView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         user = self.request.user
 
-        # Check if user is in the Customers group
         if not (user.groups.filter(name='Customers').exists() or user.is_superuser):
             raise PermissionDenied("You don't have permission to perform this action.")
 
-        # Create serializer and validate
+        # Check if cart is empty
+        cart_items = Cart.objects.filter(user=user)
+        if not cart_items.exists():
+            raise ValidationError("Your cart is empty.")
+
         serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         
-        # Save the order
         order = serializer.save()
         
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-    
-    
+
+from rest_framework.decorators import action
+
+class AssignDeliveryCrewViewSet(viewsets.ViewSet):
+    """
+    A ViewSet to manage the assignment of delivery crew to orders.
+    """
+    permission_classes = [IsManagerOrAdmin]
+
+    @action(detail=True, methods=['put'])
+    def assign_delivery_crew(self, request, pk=None):
+        try:
+            order = Order.objects.get(id=pk)
+        except Order.DoesNotExist:
+            return Response({"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        delivery_crew_id = request.data.get('delivery_crew')
+
+        if not delivery_crew_id:
+            return Response({"detail": "Delivery crew must be specified."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            delivery_crew = User.objects.get(id=delivery_crew_id)
+            if not delivery_crew.groups.filter(name='Delivery crew').exists():
+                return Response({"detail": "User is not in the Delivery crew group."}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({"detail": "Delivery crew user not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        order.delivery_crew = delivery_crew
+        order.save()
+
+        return Response({
+            "detail": "Delivery crew assigned successfully.",
+            "order_id": order.id,
+            "delivery_crew": delivery_crew.username
+        }, status=status.HTTP_200_OK)
