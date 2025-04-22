@@ -1,0 +1,33 @@
+# Archivos específicos de Python
+__pycache__/
+*.pyc
+*.pyo
+.python-version
+env/
+venv/
+*.egg-info/
+
+# Archivos específicos de Django
+*.sqlite3
+instance/
+migrations/
+static/  # Si recolectas tus archivos estáticos aquí en desarrollo
+
+# Archivos de desarrollo y pruebas
+*.log
+*.pot
+local_settings.py
+db.sqlite3-*
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Archivos de Pipenv
+Pipfile.lock
