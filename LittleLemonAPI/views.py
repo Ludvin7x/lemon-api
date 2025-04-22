@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, generics
 from rest_framework.permissions import IsAuthenticated
-from .models import MenuItem, Category
-from .serializers import MenuItemSerializer, CategorySerializer
+from .models import MenuItem, Category, Order, Cart
+from .serializers import MenuItemSerializer,CartSerializer, CategorySerializer, AssignDeliveryCrewSerializer, OrderSerializer
 from .permissions import IsManagerOrAdmin
 
 class IsManagerOrAdmin(permissions.BasePermission):
@@ -63,6 +63,60 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
         """
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
             self.permission_classes = [IsAuthenticated, IsManagerOrAdmin]
+        else:
+            self.permission_classes = [permissions.AllowAny]
+        return super().get_permissions()
+    
+class AssignDeliveryCrewViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows managers to assign delivery crew to orders.
+    """
+    queryset = Order.objects.all()
+    serializer_class = AssignDeliveryCrewSerializer
+    permission_classes = [IsAuthenticated, IsManagerOrAdmin]
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.request.method in ['POST', 'PUT', 'PATCH']:
+            self.permission_classes = [IsAuthenticated, IsManagerOrAdmin]
+        else:
+            self.permission_classes = [permissions.AllowAny]
+        return super().get_permissions()
+    
+class OrderViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows orders to be viewed or edited.
+    """
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated, IsManagerOrAdmin]
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            self.permission_classes = [IsAuthenticated, IsManagerOrAdmin]
+        else:
+            self.permission_classes = [permissions.AllowAny]
+        return super().get_permissions()
+    
+class CartViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows cart items to be viewed or edited.
+    """
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            self.permission_classes = [IsAuthenticated]
         else:
             self.permission_classes = [permissions.AllowAny]
         return super().get_permissions()
