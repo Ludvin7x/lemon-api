@@ -224,3 +224,7 @@ class ManagerGroupView(GroupUserManagementView):
 
 class DeliveryCrewGroupView(GroupUserManagementView):
     group_name = 'Delivery crew'
+
+class HealthCheckView(APIView):
+    def get(self, request, *args, **kwargs):
+        return Response({"status": "OK"}, status=status.HTTP_200_OK)

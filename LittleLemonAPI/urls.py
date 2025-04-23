@@ -10,7 +10,8 @@ from .views import (
     AssignDeliveryCrewView,
     ManagerGroupView,
     DeliveryCrewGroupView,
-    OrderDetailView
+    OrderDetailView, 
+    HealthCheckView,
 )
 
 router = DefaultRouter()
@@ -29,4 +30,5 @@ urlpatterns = [
     path('groups/manager/users/<int:user_id>/', ManagerGroupView.as_view(), name='manager-group-user-delete'),
     path('groups/delivery-crew/users/', DeliveryCrewGroupView.as_view(), name='delivery-crew-group-users'),
     path('groups/delivery-crew/users/<int:user_id>/', DeliveryCrewGroupView.as_view(), name='delivery-crew-group-user-delete'),
+    path('healthz/', HealthCheckView.as_view(), name='health_check'),
 ]
