@@ -1,8 +1,9 @@
-echo
-pipenv install
+#!/usr/bin/env bash
+# build.sh
 
-echo
-pipenv run python manage.py collectstatic --noinput
+# Instalar dependencias
+pip install -r requirements.txt
 
-echo
-pipenv run python manage.py migrate
+# Migraciones y archivos estáticos
+python manage.py collectstatic --noinput
+python manage.py migrate
