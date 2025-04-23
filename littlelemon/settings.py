@@ -140,6 +140,14 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
     ),
     'SEARCH_PARAM': 'search',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '10/minute', 
+        'user': '10/minute', 
+    }
 }
 
 DJOSER = {
