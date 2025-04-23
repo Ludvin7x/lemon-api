@@ -1,5 +1,5 @@
 from rest_framework import viewsets, generics, status, filters
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import MenuItem, Category, Order, Cart
 from .serializers import (
     CreateOrderSerializer, MenuItemSerializer, CartSerializer,
@@ -226,5 +226,7 @@ class DeliveryCrewGroupView(GroupUserManagementView):
     group_name = 'Delivery crew'
 
 class HealthCheckView(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, *args, **kwargs):
         return Response({"status": "OK"}, status=status.HTTP_200_OK)

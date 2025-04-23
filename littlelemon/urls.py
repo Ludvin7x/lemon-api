@@ -16,10 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from LittleLemonAPI.views import HealthCheckView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('djoser.urls')), 
     path('auth/', include('djoser.urls.authtoken')), 
     path('api/', include('LittleLemonAPI.urls')),  
+    path('healthz/', HealthCheckView.as_view(), name='health_check'),
 ]
