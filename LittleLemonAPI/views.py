@@ -1,5 +1,4 @@
-from django.shortcuts import render
-from rest_framework import viewsets, permissions, generics, status
+from rest_framework import viewsets, generics, status, filters
 from rest_framework.permissions import IsAuthenticated
 from .models import MenuItem, Category, Order, Cart
 from .serializers import (
@@ -12,11 +11,24 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.views import APIView
 from .permissions import IsAdmin, IsManager, IsDeliveryCrew, IsCustomer
+from django_filters.rest_framework import DjangoFilterBackend
 
+from rest_framework import viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+from .models import MenuItem
+from .serializers import MenuItemSerializer
+from .permissions import IsManager, IsAdmin
+from rest_framework.permissions import IsAuthenticated
 
 class MenuItemViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter)
+    filterset_fields = ['category']
+    ordering_fields = ['title', 'price']  
+    ordering = ['title']  
+    search_fields = ['title'] 
 
     def get_permissions(self):
         if self.request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
@@ -53,6 +65,10 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
+    filterset_fields = ['status', 'delivery_crew', 'user']  # Filtrar por estado, delivery_crew o usuario
+    ordering_fields = ['created_at', 'status']  # Ordenar por fecha de creación o estado
+    ordering = ['created_at']  # Orden predeterminado por fecha de creación
 
     def get_queryset(self):
         user = self.request.user
