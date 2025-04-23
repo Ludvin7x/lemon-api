@@ -3,16 +3,15 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import MenuItem, Category, Order, Cart
 from .serializers import (
     CreateOrderSerializer, MenuItemSerializer, CartSerializer,
-    CategorySerializer, AssignDeliveryCrewSerializer, OrderSerializer
+    CategorySerializer, OrderSerializer
 )
 from django.contrib.auth.models import User, Group
 from django.db import transaction
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.views import APIView
-from .permissions import IsAdmin, IsManager, IsDeliveryCrew, IsCustomer
+from .permissions import IsAdmin, IsManager, IsCustomer
 from django_filters.rest_framework import DjangoFilterBackend
-
 from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
@@ -66,9 +65,9 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
-    filterset_fields = ['status', 'delivery_crew', 'user']  # Filtrar por estado, delivery_crew o usuario
-    ordering_fields = ['created_at', 'status']  # Ordenar por fecha de creación o estado
-    ordering = ['created_at']  # Orden predeterminado por fecha de creación
+    filterset_fields = ['status', 'delivery_crew', 'user']
+    ordering_fields = ['created_at', 'status']  
+    ordering = ['created_at']  
 
     def get_queryset(self):
         user = self.request.user
@@ -130,13 +129,11 @@ class CreateOrderView(generics.CreateAPIView):
         if not cart_items.exists():
             raise ValidationError("Your cart is empty.")
 
-        # Crear el pedido
         serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
 
         order = serializer.save()
 
-        # Eliminar ítems del carrito después de crear el pedido
         cart_items.delete()
 
         headers = self.get_success_headers(serializer.data)
@@ -182,7 +179,7 @@ class AssignDeliveryCrewView(APIView):
 
 class GroupUserManagementView(APIView):
     permission_classes = [IsAuthenticated, IsManager | IsAdmin]
-    group_name = None  # Se define en las subclases
+    group_name = None
 
     def get_group(self):
         return Group.objects.get(name=self.group_name)

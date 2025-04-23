@@ -1,5 +1,7 @@
 # 🍋 Little Lemon API
 
+🚀 **Live API URL**: [https://little-lemon-api-yexw.onrender.com/](https://little-lemon-api-yexw.onrender.com/)
+
 This project implements a fully functional RESTful API for **Little Lemon**, a fictional restaurant. It enables client developers to build web and mobile applications that support various user roles with specific permissions, including menu management, order processing, delivery crew assignment, and more.
 
 ---
@@ -75,15 +77,18 @@ Groups and user assignments are managed via the Django Admin Panel.
 
 ---
 
+
 ## 🔐 Authentication
 
 Authentication is handled by [Djoser](https://djoser.readthedocs.io/). The following endpoints are used:
 
 | Endpoint | Method | Access | Description |
 |----------|--------|--------|-------------|
-| `/api/users/` | POST | Public | Register a new user |
-| `/api/users/me/` | GET | Authenticated | Retrieve current user details |
-| `/token/login/` | POST | Public | Obtain token for login |
+| `/auth/users/` | POST | Public | Register a new user |
+| `/auth/users/me/` | GET | Authenticated | Retrieve current user details |
+| `/auth/token/login/` | POST | Public | Obtain token for login |
+| `/auth/token/logout/` | POST | Authenticated | Logout the current user |
+
 
 ---
 
@@ -113,6 +118,15 @@ Supports filtering, sorting, and pagination.
 
 ---
 
+
+### 🗂️ Categories
+
+| Endpoint | Method | Role | Description |
+|----------|--------|------|-------------|
+| `/api/categories/` | GET | All | List all categories |
+| `/api/categories/{id}/` | GET | All | Retrieve category details |
+
+
 ### 🛒 Cart Management
 
 | Endpoint | Method | Role | Description |
@@ -123,7 +137,21 @@ Supports filtering, sorting, and pagination.
 
 ---
 
+
 ### 📦 Order Management
+
+| Endpoint | Method | Role | Description |
+|----------|--------|------|-------------|
+| `/api/orders/` | GET | Customer | List user’s orders |
+| `/api/orders/create/` | POST | Customer | Create a new order from cart |
+| `/api/orders/{id}/` | GET | Customer | View a specific order |
+| `/api/orders/{id}/assign-delivery-crew/` | POST | Manager | Assign delivery crew to the order |
+| `/api/orders/{id}/` | PUT/PATCH | Manager | Update or manage order |
+| `/api/orders/{id}/` | DELETE | Manager | Delete an order |
+| `/api/orders/` | GET | Manager | View all orders |
+| `/api/orders/` | GET | Delivery Crew | View assigned orders |
+| `/api/orders/{id}/` | PATCH | Delivery Crew | Update order delivery status |
+
 
 | Endpoint | Method | Role | Description |
 |----------|--------|------|-------------|
