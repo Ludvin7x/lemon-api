@@ -1,4 +1,4 @@
-# 🍋 Little Lemon API
+# 🍋 Restaurant Manager API
 
 🚀 **Live API URL**: [https://little-lemon-api-yexw.onrender.com/](https://little-lemon-api-yexw.onrender.com/)
 
