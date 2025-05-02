@@ -1,111 +1,94 @@
 from rest_framework import serializers
-from .models import MenuItem, Category, Cart, Order, OrderItem
-from django.utils import timezone
-from django.contrib.auth.models import User, Group
-
-class MenuItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MenuItem
-        fields = '__all__'
+from .models import Category, MenuItem, Cart, Order, OrderItem
+from django.contrib.auth.models import User
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ['id', 'slug', 'title']
 
-class AssignDeliveryCrewSerializer(serializers.ModelSerializer):
+class MenuItemSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
     class Meta:
-        model = Order
-        fields = ['delivery_crew']
-
-    def validate_delivery_crew(self, value):
-        if value and not value.groups.filter(name='Delivery crew').exists():
-            raise serializers.ValidationError("The user is not a delivery crew member.")
-        return value
-
-class OrderItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderItem
-        fields = ['menuitem', 'quantity', 'unit_price', 'price']
-        read_only_fields = ['unit_price', 'price']  # Evitamos que el cliente los modifique
-
-class OrderSerializer(serializers.ModelSerializer):
-    order_items = OrderItemSerializer(many=True, read_only=True, source='orderitem_set')  # Mejor nombre + source explícito
-
-    class Meta:
-        model = Order
-        fields = ['id', 'user', 'delivery_crew', 'status', 'total', 'date', 'order_items']
-        read_only_fields = ['user', 'order_items']
+        model = MenuItem
+        fields = ['id', 'title', 'price', 'featured', 'category']
 
 class CartSerializer(serializers.ModelSerializer):
+    menuitem = MenuItemSerializer(read_only=True)
+    user = serializers.StringRelatedField()
     class Meta:
         model = Cart
-        fields = ['id', 'menuitem', 'quantity', 'unit_price', 'price']
-        read_only_fields = ['user', 'unit_price', 'price']
-
-    def validate(self, data):
-        if data.get('quantity', 0) <= 0:
+        fields = ['id', 'user', 'menuitem', 'quantity', 'unit_price', 'price']
+    def validate_quantity(self, value):
+        if value <= 0:
             raise serializers.ValidationError("Quantity must be greater than zero.")
-        return data
-
+        return value
     def create(self, validated_data):
-        user = self.context['request'].user
         menuitem = validated_data['menuitem']
-        quantity = validated_data['quantity']
-
-        validated_data['user'] = user
+        qty = validated_data['quantity']
         validated_data['unit_price'] = menuitem.price
-        validated_data['price'] = quantity * menuitem.price
+        validated_data['price'] = menuitem.price * qty
+        return super().create(validated_data)
+    def update(self, instance, validated_data):
+        menuitem = validated_data.get('menuitem', instance.menuitem)
+        qty = validated_data.get('quantity', instance.quantity)
+        instance.unit_price = menuitem.price
+        instance.price = menuitem.price * qty
+        instance.save()
+        return instance
 
-        cart_item, created = Cart.objects.get_or_create(
-            user=user,
-            menuitem=menuitem,
-            defaults={
-                'quantity': quantity,
-                'unit_price': validated_data['unit_price'],
-                'price': validated_data['price']
-            }
-        )
+class OrderItemSerializer(serializers.ModelSerializer):
+    menuitem = MenuItemSerializer(read_only=True)
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'menuitem', 'quantity', 'unit_price', 'price']
+    def validate_quantity(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Quantity must be greater than zero.")
+        return value
+    def save(self, *args, **kwargs):
+        self.unit_price = self.menuitem.price
+        self.price = self.unit_price * self.quantity
+        return super().save(*args, **kwargs)
 
-        if not created:
-            cart_item.quantity += quantity
-            cart_item.price = cart_item.quantity * cart_item.unit_price
-            cart_item.save()
-
-        return cart_item
-
-class CreateOrderSerializer(serializers.ModelSerializer):
+class OrderSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    delivery_crew = serializers.StringRelatedField()
+    items = OrderItemSerializer(many=True, read_only=True)
     class Meta:
         model = Order
-        fields = ['id', 'total', 'date']
-        read_only_fields = ['id', 'total', 'date']
+        fields = ['id', 'user', 'delivery_crew', 'status', 'total', 'date', 'items']
+    def validate_status(self, value):
+        allowed = ['pending','preparing','delivering','delivered','cancelled']
+        if value not in allowed:
+            raise serializers.ValidationError(f"Invalid status. Must be one of {allowed}.")
+        return value
 
+class CreateOrderSerializer(serializers.ModelSerializer):
+    # we don’t actually accept “items” here — we build from the Cart on the server
+    class Meta:
+        model = Order
+        fields = ['id','user','delivery_crew','status','total','date']
+        read_only_fields = ['id','total','date','user']
     def create(self, validated_data):
         user = self.context['request'].user
-        cart_items = Cart.objects.filter(user=user)
-
-        if not cart_items.exists():
+        # pull all Cart items for this user
+        cart_qs = Cart.objects.filter(user=user)
+        if not cart_qs.exists():
             raise serializers.ValidationError("Your cart is empty.")
-
-        total = sum(item.price for item in cart_items)
-
-        order = Order.objects.create(
-            user=user, 
-            date=timezone.now().date(),
-            total=total
-        )
-
-        order_items = [
-            OrderItem(
+        total = 0
+        order = Order.objects.create(user=user, **validated_data)
+        for cart_item in cart_qs:
+            OrderItem.objects.create(
                 order=order,
-                menuitem=item.menuitem,
-                quantity=item.quantity,
-                unit_price=item.unit_price,
-                price=item.price
-            ) for item in cart_items
-        ]
-
-        OrderItem.objects.bulk_create(order_items)
-        cart_items.delete()
-
+                menuitem=cart_item.menuitem,
+                quantity=cart_item.quantity,
+                unit_price=cart_item.unit_price,
+                price=cart_item.price
+            )
+            total += cart_item.price
+        order.total = total
+        order.save()
+        # clear cart
+        cart_qs.delete()
         return order
