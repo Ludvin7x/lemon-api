@@ -6,12 +6,12 @@ import os
 
 @receiver(post_migrate)
 def create_initial_data(sender, **kwargs):
-    # Grupos
+    # Group creation
     Group.objects.get_or_create(name="Manager")
     Group.objects.get_or_create(name="Delivery crew")
     Group.objects.get_or_create(name="Customer")
 
-    # Usuarios de prueba
+    # test users creation
     if not User.objects.filter(username="customer").exists():
         user = User.objects.create_user("customer", password="test1234")
         customer_group = Group.objects.get(name="Customer")
@@ -22,7 +22,7 @@ def create_initial_data(sender, **kwargs):
         delivery_group = Group.objects.get(name="Delivery crew")
         user.groups.add(delivery_group)
 
- # Create superuser for Manager with hardcoded username/email and env var password
+ # Create adminuser
         mgr_username = "manager"
         mgr_email = "manager@lemon.com"
         mgr_password = os.environ.get("MANAGER_PASSWORD")
@@ -32,7 +32,6 @@ def create_initial_data(sender, **kwargs):
                 email=mgr_email,
                 password=mgr_password
             )
-
 
     # Categorías y MenuItems
     categories_data = [

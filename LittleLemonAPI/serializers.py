@@ -89,6 +89,5 @@ class CreateOrderSerializer(serializers.ModelSerializer):
             total += cart_item.price
         order.total = total
         order.save()
-        # clear cart
         cart_qs.delete()
         return order

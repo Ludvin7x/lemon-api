@@ -25,11 +25,16 @@ class MenuItemViewSet(viewsets.ModelViewSet):
     search_fields = ['title']
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            self.permission_classes = [IsAuthenticated, (IsManager | IsAdmin)]
+        # ‑‑ Acceso libre a GET /menu-items/ y GET /menu-items/<id>/
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [AllowAny]
+        # ‑‑ Acceso restringido a POST, PUT, PATCH y DELETE ---
+        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAuthenticated, IsManager | IsAdmin]
         else:
-            self.permission_classes = [IsAuthenticated]
-        return super().get_permissions()
+            permission_classes = [IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

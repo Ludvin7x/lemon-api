@@ -1,7 +1,6 @@
 from pathlib import Path
 from decouple import config, Csv
 import dj_database_url
-import os  # Asegúrate de importar os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
