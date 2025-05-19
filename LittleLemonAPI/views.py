@@ -24,14 +24,14 @@ class MenuItemViewSet(viewsets.ModelViewSet):
     ordering_fields = ['title', 'price']
     search_fields = ['title']
 
-def get_permissions(self):
-    if self.action in ['list', 'retrieve']:
-        permission_classes = [AllowAny]
-    elif self.action in ['create', 'update', 'partial_update', 'destroy']:
-        permission_classes = [IsAuthenticated, IsManager | IsAdmin]
-    else:
-        permission_classes = [IsAuthenticated]
-    return [permission() for permission in permission_classes]
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [AllowAny]
+        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAuthenticated, IsManager | IsAdmin]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
