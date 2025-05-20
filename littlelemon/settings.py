@@ -9,7 +9,6 @@ SECRET_KEY = config('SECRET_KEY', default='insecure-key-for-dev')
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost', cast=Csv())
 
-# Aplicaciones
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -21,6 +20,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'LittleLemonAPI',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
