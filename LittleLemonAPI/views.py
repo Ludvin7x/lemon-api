@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from .models import MenuItem, Category, Order, Cart
 from .serializers import (
     MenuItemSerializer, CategorySerializer, CartSerializer,
-    OrderSerializer, CreateOrderSerializer
+    OrderSerializer, CreateOrderSerializer, UserSerializer
 )
 from .permissions import IsAdmin, IsManager, IsCustomer
 
@@ -210,3 +210,10 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.user.is_authenticated:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
+    
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
