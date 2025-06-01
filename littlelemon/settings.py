@@ -22,7 +22,7 @@ ALLOWED_HOSTS = (
 
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",
-    default="https://*.netlify.app,https://*.onrender.com",
+    default="https://lemon-front.netlify.app",
     cast=Csv(),
 )
 
@@ -123,7 +123,7 @@ CORS_ALLOW_CREDENTIALS = True
 if DEBUG:
     CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
 else:
-    CORS_ALLOWED_ORIGINS = ["https://restaurant-littlelemon.netlify.app"]
+    CORS_ALLOWED_ORIGINS = ["https://lemon-front.netlify.app"]
     CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://.*\.netlify\.app$"]
 
 # ────────────────────────────────────────────────────────────────────────────────
