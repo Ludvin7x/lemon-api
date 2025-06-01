@@ -28,7 +28,7 @@ This project implements a fully functional RESTful API for **Little Lemon**, a f
 
 - REST API for restaurant operations
 - Role-based access control: Manager, Delivery Crew, Customer
-- Token-based authentication using Djoser
+- Token-based authentication using Djoser with **JWT (JSON Web Tokens)
 - Menu, cart, and order management
 - Group-based user administration
 - Filtering, searching, sorting, and pagination
@@ -42,7 +42,7 @@ This project implements a fully functional RESTful API for **Little Lemon**, a f
 - Python 3.x  
 - Django 4.x  
 - Django REST Framework  
-- Djoser (for authentication)  
+- Djoser (for authentication with JWT)  
 - Pipenv (for virtual environment and dependency management)  
 - SQLite (development database)  
 
@@ -80,15 +80,25 @@ Groups and user assignments are managed via the Django Admin Panel.
 
 ## 🔐 Authentication
 
-Authentication is handled by [Djoser](https://djoser.readthedocs.io/). The following endpoints are used:
+Authentication is handled by Djoser and uses JSON Web Tokens (JWT) for a stateless and secure approach. The following endpoints are used:
 
 | Endpoint | Method | Access | Description |
-|----------|--------|--------|-------------|
-| `/auth/users/` | POST | Public | Register a new user |
-| `/auth/users/me/` | GET | Authenticated | Retrieve current user details |
-| `/auth/token/login/` | POST | Public | Obtain token for login |
-| `/auth/token/logout/` | POST | Authenticated | Logout the current user |
+|---|---|---|---|
+| /auth/users/ | POST | Public | Register a new user |
+| /auth/users/me/ | GET | Authenticated | Retrieve current user details |
+| /auth/jwt/create/ | POST | Public | Obtain JWT access and refresh tokens for login (send username and password) |
+| /auth/jwt/refresh/ | POST | Public | Obtain a new access token using a valid refresh token |
+| /auth/jwt/verify/ | POST | Public | Verify the validity of an access token |
+| /auth/users/set_password/ | POST | Authenticated | Change user's password |
+| /auth/users/reset_password/ | POST | Public | Request password reset email |
+| /auth/users/reset_password_confirm/ | POST | Public | Confirm password reset using UID and token |
 
+Using JWT Tokens:
+Once you obtain an access token from /auth/jwt/create/, you must include it in the Authorization header of all subsequent protected API requests:
+
+Authorization: Bearer <your_access_token>
+
+When your access token expires, use the refresh token with the /auth/jwt/refresh/ endpoint to get a new access token.
 
 ---
 
@@ -224,7 +234,7 @@ Follow these steps to set up and run the Little Lemon API on your local machine.
     Clone the project repository from GitHub:
 
     ```bash
-    git clone [https://github.com/ludvin7x/little-lemon-api.git](https://github.com/ludvin7x/little-lemon-api.git)
+    git clone https://github.com/ludvin7x/little-lemon-api.git
     cd little-lemon-api
     ```
 
@@ -237,23 +247,17 @@ Follow these steps to set up and run the Little Lemon API on your local machine.
     pipenv shell
     ```
 
-3.  **Generate the Secret Key**
+3.  **Generate Environment Variables**
 
-    Create a `.env` file in the root directory of the project. This file will store environment-specific variables, such as the Django `SECRET_KEY`.
+    A new utility script `generate_env.py` is included to help generate the `.env` file with the necessary environment variables for local development, including a secure `SECRET_KEY` and debug settings.
 
-    ```ini
-    # .env
-    SECRET_KEY=your-generated-secret-key
-    DEBUG=True # Optional: Set to True for development
-    ```
-
-    Generate a strong random `SECRET_KEY` by running the following command:
+    Run the script:
 
     ```bash
-    python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+    python generate_env.py
     ```
 
-    Copy the output and paste it as the value for `SECRET_KEY` in your `.env` file.
+    This will create a `.env` file in the root directory with appropriate values for local usage.
 
 4.  **Run Database Migrations**
 
@@ -265,7 +269,7 @@ Follow these steps to set up and run the Little Lemon API on your local machine.
 
 5.  **Create a Superuser (Optional but Recommended)**
 
-    Create a superuser account to access the Django Admin Panel, which is useful for managing users, groups, and potentially initial data:
+    Create a superuser account to access the Django Admin Panel, which is useful for managing users, groups, and initial data:
 
     ```bash
     python manage.py createsuperuser
@@ -282,6 +286,8 @@ Follow these steps to set up and run the Little Lemon API on your local machine.
     ```
 
     The API should now be running locally, typically accessible at `http://127.0.0.1:8000/`. You can access the Django Admin panel at `http://127.0.0.1:8000/admin/` (if you created a superuser).
+
+---
 
 ## 📝 License
 

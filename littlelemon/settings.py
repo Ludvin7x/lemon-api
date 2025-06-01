@@ -1,172 +1,209 @@
-from datetime import timedelta
 from pathlib import Path
+from datetime import timedelta
+import os
+
 from decouple import config, Csv
 import dj_database_url
 
+# ────────────────────────────────────────────────────────────────────────────────
+# Paths & entorno
+# ────────────────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Seguridad
-SECRET_KEY = config('SECRET_KEY', default='insecure-key-for-dev')
-DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost', cast=Csv())
+DEBUG: bool = config("DEBUG", default=False, cast=bool)
+ENV: str = config("ENV", default="development") 
+SECRET_KEY: str = config("SECRET_KEY")
 
+ALLOWED_HOSTS = (
+    ["localhost", "127.0.0.1"]
+    if DEBUG
+    else config("ALLOWED_HOSTS", default="", cast=Csv())
+)
+
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS",
+    default="https://*.netlify.app,https://*.onrender.com",
+    cast=Csv(),
+)
+
+# ────────────────────────────────────────────────────────────────────────────────
+# Apps
+# ────────────────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework.authtoken',
-    'djoser',
-    'rest_framework_simplejwt',
-    'corsheaders',
-    'LittleLemonAPI',
-    'django_filters',
+    # Django
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    # 3rd‑party
+    "corsheaders",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "djoser",
+    "rest_framework_simplejwt",
+    "django_filters",
+    # First‑party
+    "LittleLemonAPI",
 ]
+
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'littlelemon.urls'
+# ────────────────────────────────────────────────────────────────────────────────
+ROOT_URLCONF = "littlelemon.urls"
+WSGI_APPLICATION = "littlelemon.wsgi.application"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
-    },
+    }
 ]
 
-WSGI_APPLICATION = 'littlelemon.wsgi.application'
-
+# ────────────────────────────────────────────────────────────────────────────────
 # Base de datos
+# ────────────────────────────────────────────────────────────────────────────────
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}", conn_max_age=600
     )
 }
 
-# Validaciones de contraseña
+# ────────────────────────────────────────────────────────────────────────────────
+# Password policies
+# ────────────────────────────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# Localización
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+# ────────────────────────────────────────────────────────────────────────────────
+# I18N / L10N
+# ────────────────────────────────────────────────────────────────────────────────
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# Archivos estáticos
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+# ────────────────────────────────────────────────────────────────────────────────
+# Static files
+# ────────────────────────────────────────────────────────────────────────────────
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Django REST Framework
+# ────────────────────────────────────────────────────────────────────────────────
+# CORS
+# ────────────────────────────────────────────────────────────────────────────────
+CORS_ALLOW_CREDENTIALS = True
+
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+else:
+    CORS_ALLOWED_ORIGINS = ["https://restaurant-littlelemon.netlify.app"]
+    CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://.*\.netlify\.app$"]
+
+# ────────────────────────────────────────────────────────────────────────────────
+# DRF
+# ────────────────────────────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication', 
-        'rest_framework.authentication.BasicAuthentication', 
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
-    'DEFAULT_FILTER_BACKENDS': (
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.OrderingFilter',
-        'rest_framework.filters.SearchFilter',
-    ),
-    'SEARCH_PARAM': 'search',
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '10/minute',
-        'user': '10/minute',
-    }
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.OrderingFilter",
+        "rest_framework.filters.SearchFilter",
+    ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {"anon": "10/min", "user": "20/min"},
 }
 
+# ────────────────────────────────────────────────────────────────────────────────
+# Djoser
+# ────────────────────────────────────────────────────────────────────────────────
 DJOSER = {
-    'USER_ID_FIELD': 'id', 
-    'LOGIN_FIELD': 'username', 
-
-    # Required for JWT integration
-    'TOKEN_MODEL': None, # Crucial: tells Djoser NOT to use its default Token model
-    'JWT_AUTH': True, # Crucial: tells Djoser to use JWT for authentication
-
-    # Optional: Configure email activation, password reset URLs
-    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
-    'USERNAME_RESET_CONFIRM_URL': 'username/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': 'activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL': False, # Set to True if you want email activation
-
-    'SERIALIZERS': {
-        'token_create': 'djoser.serializers.TokenCreateSerializer', # Used for login endpoint
+    "USER_ID_FIELD": "id",
+    "LOGIN_FIELD": "username",
+    "TOKEN_MODEL": None,  # usamos JWT
+    "JWT_AUTH": True,
+    "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
+    "USERNAME_RESET_CONFIRM_URL": "username/reset/confirm/{uid}/{token}",
+    "ACTIVATION_URL": "activate/{uid}/{token}",
+    "SEND_ACTIVATION_EMAIL": False,
+    "SERIALIZERS": {
+        "token_create": "djoser.serializers.TokenCreateSerializer",
     },
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "https://restaurant-littlelemon.netlify.app",
-    "http://localhost:3000", #React, Vue, Angular
-]
-
+# ────────────────────────────────────────────────────────────────────────────────
+# JWT
+# ────────────────────────────────────────────────────────────────────────────────
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Duración del token de acceso (corta)
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Duración del token de refresco (larga)
-    'ROTATE_REFRESH_TOKENS': True,                  # Genera un nuevo refresh token con cada refresh
-    'BLACKLIST_AFTER_ROTATION': True,               # Invalida el refresh token viejo después de la rotación
-    'UPDATE_LAST_LOGIN': True,                      # Opcional: actualiza el campo last_login del usuario
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_CLAIM": "user_id",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+}
 
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY, # Utiliza la misma SECRET_KEY de Django
-    'VERIFYING_KEY': None,
-    'AUDIENCE': None,
-    'ISSUER': None,
-    'JWK_URL': None,
-    'LEEWAY': 0,
+# ────────────────────────────────────────────────────────────────────────────────
+# Seguridad extra en producción
+# ────────────────────────────────────────────────────────────────────────────────
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
-
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
-
-    'JTI_CLAIM': 'jti',
-
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+# ────────────────────────────────────────────────────────────────────────────────
+# Logging básico a consola (útil en Render)
+# ────────────────────────────────────────────────────────────────────────────────
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": "DEBUG" if DEBUG else "INFO"},
 }
