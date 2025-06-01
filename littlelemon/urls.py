@@ -1,11 +1,12 @@
 from django.contrib import admin
 from django.urls import include, path
-from LittleLemonAPI.views import HealthCheckView
+from LittleLemonAPI.views.health import HealthCheckView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
 from LittleLemonAPI.views import CurrentUserView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),

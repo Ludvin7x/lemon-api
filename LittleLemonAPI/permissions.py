@@ -1,36 +1,34 @@
 from rest_framework.permissions import BasePermission
 
-class IsUserInGroup(BasePermission):
-    """
-    Permiso base para verificar si el usuario está en uno de los grupos especificados.
-    """
-    def has_permission(self, request, view, groups):
-        return request.user.is_authenticated and request.user.groups.filter(name__in=groups).exists()
-
-class IsDeliveryCrew(IsUserInGroup):
-    """
-    Permiso personalizado para permitir acceso solo a los miembros del grupo 'Delivery crew'.
-    """
+class IsAuthenticatedBase(BasePermission):
     def has_permission(self, request, view):
-        return super().has_permission(request, view, groups=['Delivery crew'])
+        user = request.user
+        return bool(user and user.is_authenticated and user.is_active)
 
-class IsCustomer(IsUserInGroup):
-    """
-    Permiso personalizado para permitir acceso solo a los miembros del grupo 'Customers'.
-    """
-    def has_permission(self, request, view):
-        return super().has_permission(request, view, groups=['Customers'])
 
-class IsManager(IsUserInGroup):
-    """
-    Permiso personalizado para permitir acceso solo a los managers.
-    """
+class IsAdmin(IsAuthenticatedBase):
     def has_permission(self, request, view):
-        return super().has_permission(request, view, groups=['Manager'])
+        user = request.user
+        return super().has_permission(request, view) and (user.is_staff or user.is_superuser)
 
-class IsAdmin(BasePermission):
-    """
-    Permiso personalizado para permitir acceso solo a los superusuarios (admins).
-    """
+
+class IsManagerOrAdmin(IsAuthenticatedBase):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.is_superuser
+        user = request.user
+        is_manager = user.groups.filter(name='Manager').exists()
+        return super().has_permission(request, view) and (is_manager or user.is_staff or user.is_superuser)
+
+
+class IsDeliveryCrewOrAdmin(IsAuthenticatedBase):
+    def has_permission(self, request, view):
+        user = request.user
+        is_delivery = user.groups.filter(name='Delivery crew').exists()
+        return super().has_permission(request, view) and (is_delivery or user.is_staff or user.is_superuser)
+    
+class IsCustomer(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        if not user or not user.is_authenticated or not user.is_active:
+            return False
+        is_customer = user.groups.filter(name='Customer').exists()
+        return is_customer or user.is_staff or user.is_superuser
