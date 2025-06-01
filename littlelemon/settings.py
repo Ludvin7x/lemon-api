@@ -37,17 +37,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # 3rd‑party
+    # 3rd-party
     "corsheaders",
     "rest_framework",
-    "rest_framework.authtoken",
-    "djoser",
     "rest_framework_simplejwt",
     "django_filters",
-    # First‑party
+    # First-party
     "LittleLemonAPI",
 ]
-
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -130,7 +127,7 @@ else:
     CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://.*\.netlify\.app$"]
 
 # ────────────────────────────────────────────────────────────────────────────────
-# DRF
+# DRF + JWT
 # ────────────────────────────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -153,26 +150,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {"anon": "10/min", "user": "20/min"},
 }
 
-# ────────────────────────────────────────────────────────────────────────────────
-# Djoser
-# ────────────────────────────────────────────────────────────────────────────────
-DJOSER = {
-    "USER_ID_FIELD": "id",
-    "LOGIN_FIELD": "username",
-    "TOKEN_MODEL": None,  # usamos JWT
-    "JWT_AUTH": True,
-    "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
-    "USERNAME_RESET_CONFIRM_URL": "username/reset/confirm/{uid}/{token}",
-    "ACTIVATION_URL": "activate/{uid}/{token}",
-    "SEND_ACTIVATION_EMAIL": False,
-    "SERIALIZERS": {
-        "token_create": "djoser.serializers.TokenCreateSerializer",
-    },
-}
-
-# ────────────────────────────────────────────────────────────────────────────────
 # JWT
-# ────────────────────────────────────────────────────────────────────────────────
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
