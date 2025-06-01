@@ -15,9 +15,8 @@ from .serializers import (
 )
 from .permissions import IsAdmin, IsManager, IsCustomer
 
-
 class MenuItemViewSet(viewsets.ModelViewSet):
-    queryset = MenuItem.objects.all()
+    queryset = MenuItem.objects.all().order_by('id')  # 👈 Solución al warning
     serializer_class = MenuItemSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
     filterset_fields = ['category']

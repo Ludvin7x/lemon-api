@@ -121,7 +121,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_CREDENTIALS = True
 
 if DEBUG:
-    CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+    CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
 else:
     CORS_ALLOWED_ORIGINS = ["https://restaurant-littlelemon.netlify.app"]
     CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://.*\.netlify\.app$"]

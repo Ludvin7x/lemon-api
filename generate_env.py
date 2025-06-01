@@ -26,10 +26,10 @@ SECRET_KEY={secret_key}
 ALLOWED_HOSTS=localhost,127.0.0.1
 
 # Trusted origins for CSRF (local React frontend)
-CSRF_TRUSTED_ORIGINS=http://localhost:3000
+CSRF_TRUSTED_ORIGINS=http://localhost:5173/
 
 # Note: CORS_ALLOWED_ORIGINS belongs in settings.py, not here, but remember to configure it:
-# CORS_ALLOWED_ORIGINS=http://localhost:3000
+# CORS_ALLOWED_ORIGINS=http://localhost:5173/
 """
 
     # Save with explicit utf-8 encoding
