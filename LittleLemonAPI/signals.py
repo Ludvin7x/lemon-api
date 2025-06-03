@@ -1,12 +1,19 @@
 from django.db.models.signals import post_migrate
 from django.contrib.auth.models import Group, User
 from django.dispatch import receiver
+from django.db import connection
 from .models import Category, MenuItem
 import os
 
 @receiver(post_migrate)
 def create_initial_data(sender, **kwargs):
-    print("→ Ejecutando signal: creación de datos iniciales...")
+    # Evitar ejecución si las tablas no existen todavía
+    try:
+        if "LittleLemonAPI_menuitem" not in connection.introspection.table_names():
+            return
+    except Exception as e:
+        print(f"Signal cancelado: {e}")
+        return
 
     # Crear grupos
     for group_name in ["Manager", "Delivery crew", "Customer"]:
@@ -21,14 +28,14 @@ def create_initial_data(sender, **kwargs):
         user = User.objects.create_user("delivery", password="test1234")
         user.groups.add(Group.objects.get(name="Delivery crew"))
 
-    # Crear superusuario si no existe
+    # Crear superusuario desde variable de entorno
     mgr_username = "manager"
     mgr_email = "manager@lemon.com"
     mgr_password = os.environ.get("MANAGER_PASSWORD")
     if mgr_password and not User.objects.filter(username=mgr_username).exists():
         User.objects.create_superuser(username=mgr_username, email=mgr_email, password=mgr_password)
 
-    # Datos iniciales: Categorías + Ítems
+    # Datos iniciales: Categorías + Items
     categories_data = [
         {"title": "Pizzas", "slug": "pizzas", "items": [
             {"title": "Margherita", "description": "Tomato, mozzarella, and basil.", "price": 10.99, "featured": True},
@@ -65,17 +72,14 @@ def create_initial_data(sender, **kwargs):
     ]
 
     for category_data in categories_data:
-        category, _ = Category.objects.get_or_create(
-            title=category_data["title"],
-            slug=category_data["slug"]
-        )
+        category, _ = Category.objects.get_or_create(title=category_data["title"], slug=category_data["slug"])
         for item in category_data["items"]:
-            MenuItem.objects.update_or_create(
+            MenuItem.objects.get_or_create(
                 title=item["title"],
+                category=category,
                 defaults={
                     "description": item["description"],
                     "price": item["price"],
                     "featured": item["featured"],
-                    "category": category
                 }
             )
