@@ -11,3 +11,4 @@ from .health import HealthCheckView
 from .categories import CategoryListView, CategoryDetailView
 from .delivery import DeliveryCrewGroupView
 from .manager import ManagerGroupView
+from .RegisterUser import RegisterUserView

@@ -2,4 +2,5 @@
 from .menuitem_serializers import MenuItemSerializer
 from .cart_serializers import CartSerializer
 from .order_serializers import OrderSerializer, CreateOrderSerializer, OrderItemSerializer
-from .auth_serializers import UserSerializer, RegisterSerializer, MyTokenObtainPairSerializer
+from .auth_serializers import UserSerializer, MyTokenObtainPairSerializer
+from .registerUser import RegisterSerializer
