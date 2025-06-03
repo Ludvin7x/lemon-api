@@ -24,8 +24,7 @@ class CartViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save()
 
-    @action(detail=False, methods=['delete'], url_path='', permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['delete'], url_path='clear')
     def clear(self, request):
-
-        Cart.objects.filter(user=request.user).delete()
+        self.get_queryset().delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
