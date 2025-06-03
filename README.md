@@ -141,9 +141,12 @@ Supports filtering, sorting, and pagination.
 
 | Endpoint | Method | Role | Description |
 |----------|--------|------|-------------|
-| `/api/cart/menu-items/` | GET | Customer | View items in current user's cart |
-| `/api/cart/menu-items/` | POST | Customer | Add item to cart |
-| `/api/cart/menu-items/` | DELETE | Customer | Clear all items in the cart |
+| `/api/cart/`      | GET    | Customer | View all items in the authenticated user's cart      |
+| `/api/cart/`      | POST   | Customer | Add item to the cart or update quantity if it exists |
+| `/api/cart/<id>/` | PATCH  | Customer | Update the quantity of a specific item in the cart   |
+| `/api/cart/<id>/` | DELETE | Customer | Remove a specific item from the cart                 |
+| `/api/cart/`      | DELETE | Customer | Clear all items from the cart                        |
+
 
 ---
 
