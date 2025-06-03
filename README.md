@@ -2,7 +2,7 @@
 
 🚀 **Live API URL**: [https://little-lemon-api-yexw.onrender.com/](https://little-lemon-api-yexw.onrender.com/)
 
-This project implements a fully functional RESTful API for **Little Lemon**, a fictional restaurant. It enables client developers to build web and mobile applications that support various user roles with specific permissions, including menu management, order processing, delivery crew assignment, and more.
+This project implements a fully functional RESTful API for **Lemon**, a fictional restaurant. It enables client developers to build web and mobile applications that support various user roles with specific permissions, including menu management, order processing, delivery crew assignment, and more.
 
 ---
 
