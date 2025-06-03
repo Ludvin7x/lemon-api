@@ -26,6 +26,6 @@ class CartViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['delete'], url_path='', permission_classes=[IsAuthenticated])
     def clear(self, request):
-        # DELETE /cart/menu-items/ clears all items
+
         Cart.objects.filter(user=request.user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -6,6 +6,8 @@ import os
 
 @receiver(post_migrate)
 def create_initial_data(sender, **kwargs):
+    print("→ Ejecutando signal: creación de datos iniciales...")
+
     # Crear grupos
     for group_name in ["Manager", "Delivery crew", "Customer"]:
         Group.objects.get_or_create(name=group_name)
@@ -19,7 +21,7 @@ def create_initial_data(sender, **kwargs):
         user = User.objects.create_user("delivery", password="test1234")
         user.groups.add(Group.objects.get(name="Delivery crew"))
 
-    # Crear superusuario con contraseña desde variable de entorno
+    # Crear superusuario si no existe
     mgr_username = "manager"
     mgr_email = "manager@lemon.com"
     mgr_password = os.environ.get("MANAGER_PASSWORD")
@@ -63,9 +65,12 @@ def create_initial_data(sender, **kwargs):
     ]
 
     for category_data in categories_data:
-        category, _ = Category.objects.get_or_create(title=category_data["title"], slug=category_data["slug"])
+        category, _ = Category.objects.get_or_create(
+            title=category_data["title"],
+            slug=category_data["slug"]
+        )
         for item in category_data["items"]:
-            MenuItem.objects.get_or_create(
+            MenuItem.objects.update_or_create(
                 title=item["title"],
                 defaults={
                     "description": item["description"],
