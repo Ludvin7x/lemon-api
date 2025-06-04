@@ -1,19 +1,18 @@
 from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
-from django.shortcuts import get_object_or_404
 from ..models import MenuItem
 from ..serializers import MenuItemSerializer
 from ..permissions import IsAdmin, IsManagerOrAdmin
+from ..filters import MenuItemFilter  # Importa el filtro personalizado
 
 class MenuItemViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.all().order_by('id')
     serializer_class = MenuItemSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
-    filterset_fields = ['category']
+    filterset_class = MenuItemFilter  
     ordering_fields = ['title', 'price']
-    search_fields = ['title']
+    search_fields = ['title', 'description']  
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
