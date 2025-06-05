@@ -14,6 +14,7 @@ from .views import (
     RegisterUserView,
     CreateCheckoutSessionView,
     stripe_webhook,
+    RetrieveCheckoutSessionView,
 )
 
 router = DefaultRouter()
@@ -47,4 +48,6 @@ urlpatterns = [
     # Stripe checkout
     path('checkout/create-session/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
     path('webhook/stripe/', stripe_webhook, name='stripe-webhook'),
+    path('checkout/session/<str:session_id>/', RetrieveCheckoutSessionView.as_view(), name='retrieve-checkout-session'),
+
     ]

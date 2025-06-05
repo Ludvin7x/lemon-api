@@ -14,3 +14,4 @@ from .manager import ManagerGroupView
 from .RegisterUser import RegisterUserView
 from .stripe_checkout import CreateCheckoutSessionView
 from .webhookStripe import stripe_webhook
+from .RetrieveCheckoutSessionView import RetrieveCheckoutSessionView
