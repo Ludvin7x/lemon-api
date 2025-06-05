@@ -12,6 +12,8 @@ from .views import (
     CategoryListView,
     CategoryDetailView,
     RegisterUserView,
+    CreateCheckoutSessionView,
+    stripe_webhook,
 )
 
 router = DefaultRouter()
@@ -41,4 +43,8 @@ urlpatterns = [
     # Delivery crew group
     path('groups/delivery-crew/users/', DeliveryCrewGroupView.as_view(), name='delivery-crew-group-users'),
     path('groups/delivery-crew/users/<int:user_id>/', DeliveryCrewGroupView.as_view(), name='delivery-crew-group-user-remove'),
-]
+
+    # Stripe checkout
+    path('checkout/create-session/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
+    path('webhook/stripe/', stripe_webhook, name='stripe-webhook'),
+    ]

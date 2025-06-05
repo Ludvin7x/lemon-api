@@ -26,6 +26,13 @@ CSRF_TRUSTED_ORIGINS = config(
     cast=Csv(),
 )
 
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY")
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
+
+# URL del frontend (local o producción)
+FRONTEND_URL = "http://localhost:5173" if DEBUG else "https://lemon-front.netlify.app"
+
 # ────────────────────────────────────────────────────────────────────────────────
 # Apps
 # ────────────────────────────────────────────────────────────────────────────────
@@ -185,3 +192,4 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": "DEBUG" if DEBUG else "INFO"},
 }
+
