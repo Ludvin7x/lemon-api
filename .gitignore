@@ -12,7 +12,7 @@ venv/
 *.sqlite3
 instance/
 migrations/
-static/  # Si recolectas tus archivos estáticos aquí en desarrollo
+static/
 
 # Archivos de desarrollo y pruebas
 *.log

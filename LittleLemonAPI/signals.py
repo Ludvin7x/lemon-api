@@ -7,35 +7,66 @@ import os
 
 @receiver(post_migrate)
 def create_initial_data(sender, **kwargs):
-    # Evitar ejecución si las tablas no existen todavía
+    # Avoid execution if tables don't exist yet
     try:
+        # Check if the 'LittleLemonAPI_menuitem' table exists as a proxy for app tables being ready
         if "LittleLemonAPI_menuitem" not in connection.introspection.table_names():
             return
     except Exception as e:
-        print(f"Signal cancelado: {e}")
+        print(f"Signal cancelled: {e}")
         return
 
-    # Crear grupos
+    # Create or get groups
     for group_name in ["Manager", "Delivery crew", "Customer"]:
         Group.objects.get_or_create(name=group_name)
 
-    # Crear usuarios de prueba
-    if not User.objects.filter(username="customer").exists():
-        user = User.objects.create_user("customer", password="test1234")
-        user.groups.add(Group.objects.get(name="Customer"))
+    # Create or update test users
+    users_data = [
+        {"username": "customer", "email": "customer@example.com", "password": "test1234", "group": "Customer"},
+        {"username": "delivery", "email": "delivery@example.com", "password": "test1234", "group": "Delivery crew"},
+    ]
 
-    if not User.objects.filter(username="delivery").exists():
-        user = User.objects.create_user("delivery", password="test1234")
-        user.groups.add(Group.objects.get(name="Delivery crew"))
+    for user_data in users_data:
+        user, created = User.objects.get_or_create(
+            username=user_data["username"],
+            defaults={"email": user_data["email"], "password": user_data["password"]}
+        )
+        if not created:
+            # If user already exists, update email and set password (Django handles hashing)
+            user.email = user_data["email"]
+            user.set_password(user_data["password"])
+            user.save()
+        
+        # Add user to the specified group
+        group = Group.objects.get(name=user_data["group"])
+        user.groups.add(group)
 
-    # Crear superusuario desde variable de entorno
+    # Create superuser from environment variable
     mgr_username = "manager"
     mgr_email = "manager@lemon.com"
     mgr_password = os.environ.get("MANAGER_PASSWORD")
-    if mgr_password and not User.objects.filter(username=mgr_username).exists():
-        User.objects.create_superuser(username=mgr_username, email=mgr_email, password=mgr_password)
+    if mgr_password:
+        # Use get_or_create for manager, and if it exists, ensure it's a superuser and email is correct.
+        # Note: update_or_create is more direct for this, but get_or_create with subsequent updates also works.
+        manager_user, created = User.objects.get_or_create(
+            username=mgr_username,
+            defaults={
+                "email": mgr_email,
+                "password": mgr_password,
+                "is_staff": True,
+                "is_superuser": True,
+            }
+        )
+        if not created:
+            # If manager exists, update email and ensure superuser status
+            manager_user.email = mgr_email
+            manager_user.is_staff = True
+            manager_user.is_superuser = True
+            manager_user.set_password(mgr_password) # Make sure password is set/updated
+            manager_user.save()
 
-    # Datos iniciales: Categorías + Items
+
+    # Initial data: Categories + Items
     categories_data = [
         {"title": "Pizzas", "slug": "pizzas", "items": [
             {"title": "Margherita", "description": "Tomato, mozzarella, and basil.", "price": 10.99, "featured": True},
