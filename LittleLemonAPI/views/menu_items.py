@@ -4,7 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from ..models import MenuItem
 from ..serializers import MenuItemSerializer
 from ..permissions import IsAdmin, IsManagerOrAdmin
-from ..filters import MenuItemFilter  # Importa el filtro personalizado
+from ..filters import MenuItemFilter
 
 class MenuItemViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.all().order_by('id')
