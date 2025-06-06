@@ -131,7 +131,6 @@ if DEBUG:
     CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
 else:
     CORS_ALLOWED_ORIGINS = ["https://lemon-front.netlify.app"]
-    CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://.*\.netlify\.app$"]
 
 # ────────────────────────────────────────────────────────────────────────────────
 # DRF + JWT
