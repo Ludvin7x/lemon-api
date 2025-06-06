@@ -5,6 +5,7 @@ from ..models import MenuItem
 from ..serializers import MenuItemSerializer
 from ..permissions import IsAdmin, IsManagerOrAdmin
 from ..filters import MenuItemFilter
+from ..throttles import MenuUserThrottle, MenuAnonThrottle
 
 class MenuItemViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.all().order_by('id')
@@ -22,3 +23,8 @@ class MenuItemViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
+    
+    def get_throttles(self):
+        if self.action in ['list', 'retrieve']:
+            return [MenuUserThrottle()] if self.request.user.is_authenticated else [MenuAnonThrottle()]
+        return super().get_throttles()

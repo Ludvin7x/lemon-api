@@ -154,7 +154,14 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "10/min", "user": "20/min"},
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "10/min",
+        "user": "20/min",
+
+        "menu_user": "35/min",
+        "menu_anon": "20/min",
+        "healthz": "60/min",
+    },
 }
 
 # JWT
